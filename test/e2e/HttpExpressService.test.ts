@@ -6,9 +6,14 @@ import { app, server } from '@infrastructure/http/express/index';
 jest.mock('@infrastructure/databases/MongoDbConnection');
 jest.mock('@infrastructure/repositories/MongoDbRepository');
 
+beforeEach(() => {
+  jest.useFakeTimers().setSystemTime(new Date('2022-09-09T13:00:00.135Z'));
+});
+
 afterEach(() => {
   server.close();
   jest.restoreAllMocks();
+  jest.clearAllTimers();
 });
 
 test('Should create a new order of service and return response to json', async () => {
@@ -21,19 +26,19 @@ test('Should create a new order of service and return response to json', async (
       typeService: 'CUT',
       sizePet: 'SMALL',
       cpf: '123.456.123-90',
-      date: '2022-09-09T13:00:00'
+      date: '2022-09-09T13:00:00.135Z'
     });
   expect(response.status).toBe(200);
   expect(response.headers['content-type']).toMatch(/json/);
   expect(response.body).toEqual({
-    serviceId: 'asd123-1662739200000-00001',
+    serviceId: 'asd123-1662728400135-00001',
     total: 52.5
   });
 });
 
 test('Should create a new order of service and return response to xml', async () => {
   jest.spyOn(MongoDbRepository.prototype, 'insert').mockResolvedValue();
-  const textXml = `<services><serviceId>asd123-1662739200000-00001</serviceId><total>52.5</total></services>`;
+  const textXml = `<services><serviceId>asd123-1662728400135-00001</serviceId><total>52.5</total></services>`;
   const response = await request(app)
     .post('/service')
     .set('Accept', 'application/xml')
@@ -42,7 +47,7 @@ test('Should create a new order of service and return response to xml', async ()
       typeService: 'CUT',
       sizePet: 'SMALL',
       cpf: '123.456.123-90',
-      date: '2022-09-09T13:00:00'
+      date: '2022-09-09T13:00:00.135Z'
     });
   expect(response.status).toBe(200);
   expect(response.headers['content-type']).toEqual(
@@ -56,12 +61,10 @@ test('Should try create a new order of service without type of service', async (
     id: 'asd123',
     sizePet: 'SMALL',
     cpf: '123.456.123-90',
-    date: '2022-09-09T13:00:00'
+    date: '2022-09-09T13:00:00.135Z'
   });
   expect(response.status).toBe(500);
-  expect(response.body).toEqual({
-    error: "Cannot read properties of undefined (reading 'SMALL')"
-  });
+  expect(response.body.error).toBeTruthy();
 });
 
 test('Should try create a new order of service', async () => {
@@ -71,7 +74,7 @@ test('Should try create a new order of service', async () => {
     typeService: 'CUT',
     sizePet: 'SMALL',
     cpf: '123.456.123-90',
-    date: '2022-09-09T13:00:00'
+    date: '2022-09-09T13:00:00.135Z'
   });
   expect(response.status).toBe(500);
   expect(response.body).toEqual({

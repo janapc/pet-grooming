@@ -65,8 +65,8 @@ export default class Service {
   }
 
   private validHours(): Error | null {
-    const hours = this.date.getHours();
-    if (hours > 18 || hours < 8) {
+    const hours = this.date.getUTCHours();
+    if (hours >= 18 || hours <= 8) {
       throw new Error('Out of Hour of attendance');
     }
     return null;

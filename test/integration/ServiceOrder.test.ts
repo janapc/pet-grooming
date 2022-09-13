@@ -13,6 +13,14 @@ const mockMongoDbConnection: Db = {
   })
 } as unknown as Db;
 
+beforeEach(() => {
+  jest.useFakeTimers().setSystemTime(new Date('2022-09-05T13:00:00.135Z'));
+});
+
+afterEach(() => {
+  jest.clearAllTimers();
+});
+
 test('Should not create a new order of service if the database stay disconnected', async () => {
   const repository = new MongoDbRepository(mockMongoDbConnection);
   const serviceOrder = new ServiceOrder(repository);
@@ -21,7 +29,7 @@ test('Should not create a new order of service if the database stay disconnected
     typeService: 'CUT',
     sizePet: 'SMALL',
     cpf: '123.456.234-90',
-    date: new Date('2022-09-07T13:00:00')
+    date: new Date()
   };
   await expect(async () => await serviceOrder.execute(input)).rejects.toThrow(
     'Disconnected Database'
@@ -36,16 +44,17 @@ test('Should create a new order of service', async () => {
     typeService: 'CUT',
     sizePet: 'SMALL',
     cpf: '123.456.234-90',
-    date: new Date('2022-09-07T13:00:00')
+    date: new Date()
   };
   const output = await serviceOrder.execute(input);
   expect(output).toEqual({
-    serviceId: 'asd123-1662566400000-00001',
+    serviceId: 'asd123-1662382800135-00001',
     total: 52.5
   });
 });
 
 test('Should try create a new order of service with an invalid date', async () => {
+  jest.useFakeTimers().setSystemTime(new Date('2022-09-11T13:00:00.135Z'));
   const repository = new MongoDbRepository(mockMongoDbConnection);
   const serviceOrder = new ServiceOrder(repository);
   const input: ServiceOrderInputDto = {
@@ -53,7 +62,7 @@ test('Should try create a new order of service with an invalid date', async () =
     typeService: 'CUT',
     sizePet: 'SMALL',
     cpf: '123.456.234-90',
-    date: new Date('2022-09-04T13:00:00')
+    date: new Date()
   };
   await expect(async () => await serviceOrder.execute(input)).rejects.toThrow(
     'The service is unavailable today'
